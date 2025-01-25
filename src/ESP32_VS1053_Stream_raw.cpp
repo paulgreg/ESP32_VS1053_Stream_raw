@@ -1,15 +1,15 @@
-#include "ESP32_VS1053_Stream.h"
+#include "ESP32_VS1053_Stream_raw.h"
 
-ESP32_VS1053_Stream::ESP32_VS1053_Stream() : _vs1053(nullptr), _http(nullptr), _vs1053Buffer{0}, _localbuffer{0}, _url{0},
+ESP32_VS1053_Stream_raw::ESP32_VS1053_Stream_raw() : _vs1053(nullptr), _http(nullptr), _vs1053Buffer{0}, _localbuffer{0}, _url{0},
                                              _ringbuffer_handle(nullptr), _buffer_struct(nullptr), _buffer_storage(nullptr) {}
 
-ESP32_VS1053_Stream::~ESP32_VS1053_Stream()
+ESP32_VS1053_Stream_raw::~ESP32_VS1053_Stream_raw()
 {
     stopSong();
     delete _vs1053;
 }
 
-void ESP32_VS1053_Stream::_allocateRingbuffer()
+void ESP32_VS1053_Stream_raw::_allocateRingbuffer()
 {
     if (!psramFound() || !VS1053_PSRAM_BUFFER_ENABLED)
         return;
@@ -52,7 +52,7 @@ void ESP32_VS1053_Stream::_allocateRingbuffer()
         log_d("Allocated %i bytes ringbuffer in PSRAM", VS1053_PSRAM_BUFFER_SIZE);
 }
 
-void ESP32_VS1053_Stream::_deallocateRingbuffer()
+void ESP32_VS1053_Stream_raw::_deallocateRingbuffer()
 {
     if (_ringbuffer_handle)
     {
@@ -67,7 +67,7 @@ void ESP32_VS1053_Stream::_deallocateRingbuffer()
     }
 }
 
-size_t ESP32_VS1053_Stream::_nextChunkSize(WiFiClient *const stream)
+size_t ESP32_VS1053_Stream_raw::_nextChunkSize(WiFiClient *const stream)
 {
     constexpr const auto BUFFER_SIZE = 8;
     char buffer[BUFFER_SIZE];
@@ -81,7 +81,7 @@ size_t ESP32_VS1053_Stream::_nextChunkSize(WiFiClient *const stream)
     return strtol(buffer, NULL, 16);
 }
 
-bool ESP32_VS1053_Stream::_checkSync(WiFiClient *const stream)
+bool ESP32_VS1053_Stream_raw::_checkSync(WiFiClient *const stream)
 {
     if ((char)stream->read() != '\r' || (char)stream->read() != '\n')
     {
@@ -91,7 +91,7 @@ bool ESP32_VS1053_Stream::_checkSync(WiFiClient *const stream)
     return true;
 }
 
-void ESP32_VS1053_Stream::_handleMetadata(char *data, const size_t len)
+void ESP32_VS1053_Stream_raw::_handleMetadata(char *data, const size_t len)
 {
     char *pch = strstr(data, "StreamTitle");
     if (!pch)
@@ -107,7 +107,7 @@ void ESP32_VS1053_Stream::_handleMetadata(char *data, const size_t len)
     audio_showstreamtitle(pch);
 }
 
-void ESP32_VS1053_Stream::_eofStream()
+void ESP32_VS1053_Stream_raw::_eofStream()
 {
     if (audio_eof_stream)
     {
@@ -121,7 +121,7 @@ void ESP32_VS1053_Stream::_eofStream()
 }
 
 inline __attribute__((always_inline)) bool
-ESP32_VS1053_Stream::_networkIsActive()
+ESP32_VS1053_Stream_raw::_networkIsActive()
 {
     for (int i = TCPIP_ADAPTER_IF_STA; i < TCPIP_ADAPTER_IF_MAX; i++)
         if (tcpip_adapter_is_netif_up((tcpip_adapter_if_t)i))
@@ -129,7 +129,7 @@ ESP32_VS1053_Stream::_networkIsActive()
     return false;
 }
 
-bool ESP32_VS1053_Stream::_canRedirect()
+bool ESP32_VS1053_Stream_raw::_canRedirect()
 {
     if (_redirectCount < VS1053_MAX_REDIRECT_COUNT)
     {
@@ -141,7 +141,7 @@ bool ESP32_VS1053_Stream::_canRedirect()
     return false;
 }
 
-bool ESP32_VS1053_Stream::startDecoder(const uint8_t CS, const uint8_t DCS, const uint8_t DREQ)
+bool ESP32_VS1053_Stream_raw::startDecoder(const uint8_t CS, const uint8_t DCS, const uint8_t DREQ)
 {
     if (_vs1053)
         return false;
@@ -156,28 +156,32 @@ bool ESP32_VS1053_Stream::startDecoder(const uint8_t CS, const uint8_t DCS, cons
     return true;
 }
 
-bool ESP32_VS1053_Stream::isChipConnected()
+bool ESP32_VS1053_Stream_raw::isChipConnected()
 {
     return _vs1053 ? _vs1053->isChipConnected() : false;
 }
 
-bool ESP32_VS1053_Stream::connecttohost(const char *url)
+void ESP32_VS1053_Stream_raw::playChunk(uint8_t *data, size_t size)  {
+    _vs1053->playChunk(data, size);
+}
+
+bool ESP32_VS1053_Stream_raw::connecttohost(const char *url)
 {
     return connecttohost(url, "", "", 0);
 }
 
-bool ESP32_VS1053_Stream::connecttohost(const char *url, const size_t offset)
+bool ESP32_VS1053_Stream_raw::connecttohost(const char *url, const size_t offset)
 {
     return connecttohost(url, "", "", offset);
 }
 
-bool ESP32_VS1053_Stream::connecttohost(const char *url, const char *username,
+bool ESP32_VS1053_Stream_raw::connecttohost(const char *url, const char *username,
                                         const char *pwd)
 {
     return connecttohost(url, username, pwd, 0);
 }
 
-bool ESP32_VS1053_Stream::connecttohost(const char *url, const char *username,
+bool ESP32_VS1053_Stream_raw::connecttohost(const char *url, const char *username,
                                         const char *pwd, size_t offset)
 {
     if (!_vs1053 || _http || !_networkIsActive() ||
@@ -383,7 +387,7 @@ bool ESP32_VS1053_Stream::connecttohost(const char *url, const char *username,
     }
 }
 
-void ESP32_VS1053_Stream::_playFromRingBuffer()
+void ESP32_VS1053_Stream_raw::_playFromRingBuffer()
 {
     if (!_ringbuffer_filled)
     {
@@ -433,7 +437,7 @@ void ESP32_VS1053_Stream::_playFromRingBuffer()
     log_d("spend %lu ms stuffing %i bytes in decoder", millis() - start, bytesToDecoder);
 }
 
-void ESP32_VS1053_Stream::_streamToRingBuffer(WiFiClient *const stream)
+void ESP32_VS1053_Stream_raw::_streamToRingBuffer(WiFiClient *const stream)
 {
     const auto MAX_TIME_MS = 10;
     const auto start = millis();
@@ -463,7 +467,7 @@ void ESP32_VS1053_Stream::_streamToRingBuffer(WiFiClient *const stream)
     log_d("spend %lu ms stuffing %i bytes in ringbuffer", millis() - start, bytesToRingBuffer);
 }
 
-void ESP32_VS1053_Stream::_handleStream(WiFiClient *const stream)
+void ESP32_VS1053_Stream_raw::_handleStream(WiFiClient *const stream)
 {
     if (!_dataSeen)
     {
@@ -520,7 +524,7 @@ void ESP32_VS1053_Stream::_handleStream(WiFiClient *const stream)
     }
 }
 
-void ESP32_VS1053_Stream::_chunkedStreamToRingBuffer(WiFiClient *const stream)
+void ESP32_VS1053_Stream_raw::_chunkedStreamToRingBuffer(WiFiClient *const stream)
 {
     const auto MAX_TIME_MS = 10;
     size_t bytesToRingBuffer = 0;
@@ -551,7 +555,7 @@ void ESP32_VS1053_Stream::_chunkedStreamToRingBuffer(WiFiClient *const stream)
     log_d("spend %lu ms stuffing %i bytes in ringbuffer", millis() - start, bytesToRingBuffer);
 }
 
-void ESP32_VS1053_Stream::_handleChunkedStream(WiFiClient *const stream)
+void ESP32_VS1053_Stream_raw::_handleChunkedStream(WiFiClient *const stream)
 {
     if (!_bytesLeftInChunk)
     {
@@ -648,7 +652,7 @@ void ESP32_VS1053_Stream::_handleChunkedStream(WiFiClient *const stream)
     }
 }
 
-void ESP32_VS1053_Stream::loop()
+void ESP32_VS1053_Stream_raw::loop()
 {
     if (!_http)
         return;
@@ -729,12 +733,12 @@ void ESP32_VS1053_Stream::loop()
         _eofStream();
 }
 
-bool ESP32_VS1053_Stream::isRunning()
+bool ESP32_VS1053_Stream_raw::isRunning()
 {
     return _http != nullptr;
 }
 
-void ESP32_VS1053_Stream::stopSong()
+void ESP32_VS1053_Stream_raw::stopSong()
 {
     if (!_http)
         return;
@@ -760,48 +764,48 @@ void ESP32_VS1053_Stream::stopSong()
     _offset = 0;
 }
 
-uint8_t ESP32_VS1053_Stream::getVolume()
+uint8_t ESP32_VS1053_Stream_raw::getVolume()
 {
     return _volume;
 }
 
-void ESP32_VS1053_Stream::setVolume(const uint8_t newVolume)
+void ESP32_VS1053_Stream_raw::setVolume(const uint8_t newVolume)
 {
     _volume = min(VS1053_MAXVOLUME, newVolume);
     if (_vs1053 && !_startMute)
         _vs1053->setVolume(_volume);
 }
 
-void ESP32_VS1053_Stream::setTone(uint8_t *rtone)
+void ESP32_VS1053_Stream_raw::setTone(uint8_t *rtone)
 {
     if (_vs1053)
         _vs1053->setTone(rtone);
 }
 
-const char *ESP32_VS1053_Stream::currentCodec()
+const char *ESP32_VS1053_Stream_raw::currentCodec()
 {
     const char *name[] = {"STOPPED", "MP3", "OGG", "AAC", "AAC+"};
     return name[_currentCodec];
 }
 
-const char *ESP32_VS1053_Stream::lastUrl() { return _url; }
+const char *ESP32_VS1053_Stream_raw::lastUrl() { return _url; }
 
-size_t ESP32_VS1053_Stream::size()
+size_t ESP32_VS1053_Stream_raw::size()
 {
     return _offset + (_http ? _http->getSize() != -1 ? _http->getSize() : 0 : 0);
 }
 
-size_t ESP32_VS1053_Stream::position()
+size_t ESP32_VS1053_Stream_raw::position()
 {
     return size() ? (size() - _remainingBytes) : 0;
 }
 
-uint32_t ESP32_VS1053_Stream::bitrate()
+uint32_t ESP32_VS1053_Stream_raw::bitrate()
 {
     return _bitrate;
 }
 
-const char *ESP32_VS1053_Stream::bufferStatus()
+const char *ESP32_VS1053_Stream_raw::bufferStatus()
 {
     if (!_ringbuffer_handle)
         return "0/0";

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <VS1053.h>               /* https://github.com/baldram/ESP_VS1053_Library */
-#include <ESP32_VS1053_Stream.h>
+#include <ESP32_VS1053_Stream_raw.h>
 
 #define SPI_CLK_PIN 18
 #define SPI_MISO_PIN 19
@@ -10,7 +10,7 @@
 #define VS1053_DCS 21
 #define VS1053_DREQ 22
 
-ESP32_VS1053_Stream stream;
+ESP32_VS1053_Stream_raw stream;
 
 const char* SSID = "xxx";
 const char* PSK = "xxx";
