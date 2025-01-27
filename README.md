@@ -1,6 +1,6 @@
-# ESP32_VS1053_Stream
+# ESP32_VS1053_Stream_raw
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7571166c872e4dc8a899382389b73f8e)](https://app.codacy.com/gh/CelliesProjects/ESP32_VS1053_Stream?utm_source=github.com&utm_medium=referral&utm_content=CelliesProjects/ESP32_VS1053_Stream&utm_campaign=Badge_Grade_Settings)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7571166c872e4dc8a899382389b73f8e)](https://app.codacy.com/gh/CelliesProjects/ESP32_VS1053_Stream_raw?utm_source=github.com&utm_medium=referral&utm_content=CelliesProjects/ESP32_VS1053_Stream_raw&utm_campaign=Badge_Grade_Settings)
 
 A streaming library for esp32, esp32-wrover, esp32-s2 and esp32-s3 with a separate VS1053 codec chip.<br>
 This library plays mp3, ogg, aac, aac+ and <strike>flac</strike> files and streams and uses [ESP_VS1053_Library](https://github.com/baldram/ESP_VS1053_Library) to communicate with the decoder.
@@ -12,7 +12,7 @@ Also plays mp3 and ogg files from sdcard or any mounted filesystem.
 
 Install [ESP_VS1053_Library](https://github.com/baldram/ESP_VS1053_Library) and this library in your Arduino library folder.
 
-Take care to install the master branch of the VS1053 library or at least a version from commit [ba1803f](https://github.com/baldram/ESP_VS1053_Library/commit/ba1803f75722a36f3e9f539129e885bea3c60f71) or later because the `getChipVersion()` call that is needed is not included in the latest release.<br>See https://github.com/CelliesProjects/ESP32_VS1053_Stream/issues/23
+Take care to install the master branch of the VS1053 library or at least a version from commit [ba1803f](https://github.com/baldram/ESP_VS1053_Library/commit/ba1803f75722a36f3e9f539129e885bea3c60f71) or later because the `getChipVersion()` call that is needed is not included in the latest release.<br>See https://github.com/CelliesProjects/ESP32_VS1053_Stream_raw/issues/23
 
 Use the [latest Arduino ESP32 core version](https://github.com/espressif/arduino-esp32/releases/latest).
 
@@ -22,7 +22,7 @@ Use the [latest Arduino ESP32 core version](https://github.com/espressif/arduino
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <VS1053.h>               // https://github.com/baldram/ESP_VS1053_Library
-#include <ESP32_VS1053_Stream.h>
+#include <ESP32_VS1053_Stream_raw.h>
 
 #define SPI_CLK_PIN 18
 #define SPI_MISO_PIN 19
@@ -32,7 +32,7 @@ Use the [latest Arduino ESP32 core version](https://github.com/espressif/arduino
 #define VS1053_DCS 21
 #define VS1053_DREQ 22
 
-ESP32_VS1053_Stream stream;
+ESP32_VS1053_Stream_raw stream;
 
 const char* SSID = "xxx";
 const char* PSK = "xxx";
@@ -105,7 +105,7 @@ void audio_eof_stream(const char* info) {
 #include <Arduino.h>
 #include <SD.h>
 #include <VS1053.h>               // https://github.com/baldram/ESP_VS1053_Library
-#include <ESP32_VS1053_Stream.h>
+#include <ESP32_VS1053_Stream_raw.h>
 
 #define SPI_CLK_PIN 18
 #define SPI_MISO_PIN 19
@@ -116,7 +116,7 @@ void audio_eof_stream(const char* info) {
 #define VS1053_DREQ 22
 #define SDREADER_CS 26
 
-ESP32_VS1053_Stream stream;
+ESP32_VS1053_Stream_raw stream;
 
 bool mountSDcard() {
     if (!SD.begin(SDREADER_CS)) {
@@ -254,7 +254,7 @@ bool connecttohost(url, user, pwd, offset)
 ```
 Note: When a stream does not start in this library but it does play on your desktop or laptop you can try increasing the connection timeout.<br>
 You can do this in 
-`ESP32_VS1053_Stream.h` by increasing these values:<br>
+`ESP32_VS1053_Stream_raw.h` by increasing these values:<br>
 ```c++
 #define VS1053_CONNECT_TIMEOUT_MS 250
 #define VS1053_CONNECT_TIMEOUT_MS_SSL 750

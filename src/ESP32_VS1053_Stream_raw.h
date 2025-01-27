@@ -1,5 +1,5 @@
-#ifndef __ESP32_VS1053_Stream__
-#define __ESP32_VS1053_Stream__
+#ifndef __ESP32_VS1053_Stream_raw__
+#define __ESP32_VS1053_Stream_raw__
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -30,15 +30,17 @@ extern void audio_showstation(const char *) __attribute__((weak));
 extern void audio_eof_stream(const char *) __attribute__((weak));
 extern void audio_showstreamtitle(const char *) __attribute__((weak));
 
-class ESP32_VS1053_Stream
+class ESP32_VS1053_Stream_raw
 {
 
 public:
-    ESP32_VS1053_Stream();
-    ~ESP32_VS1053_Stream();
+    ESP32_VS1053_Stream_raw();
+    ~ESP32_VS1053_Stream_raw();
 
     bool startDecoder(const uint8_t CS, const uint8_t DCS, const uint8_t DREQ);
     bool isChipConnected();
+
+    void playChunk(uint8_t *data, size_t size);
 
     bool connecttohost(const char *url);
     bool connecttohost(const char *url, const size_t offset);
